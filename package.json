@@ -1,6 +1,6 @@
 {
   "name": "@rdfjs/serializer-rdfjs",
-  "version": "0.0.0",
+  "version": "0.0.1",
   "description": "RDFJS JavaScript code serializer that implements the RDFJS Sink interface",
   "main": "index.js",
   "scripts": {
