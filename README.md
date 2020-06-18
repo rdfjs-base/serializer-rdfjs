@@ -6,6 +6,20 @@
 
 RDFJS JavaScript code serializer that implements the [RDFJS Sink interface](http://rdf.js.org/).
 
+It serializes a dataset as a JavaScript module which exports a single `(factory: DataFactory) => Quad[]` function. The function will re-create the original dataset's quads using RDF/JS interface.
+
+```js
+module.exports = factory => {
+  return [
+    factory.quad(
+      factory.blankNode('foo'),
+      factory.namedNode('http://example.com/bar'),
+      factory.literal('baz')
+    )
+  ]
+}
+```
+
 ## Usage
 
 The package exports the serializer as a class, so an instance must be created before it can be used.
