@@ -3,6 +3,7 @@ const { describe, it } = require('mocha')
 const toCanonical = require('rdf-dataset-ext/toCanonical')
 const rdf = require('@rdfjs/data-model')
 const PlainSerializer = require('../lib/PlainSerializer')
+const ns = require('@tpluscode/rdf-ns-builders')
 
 describe('PlainSerializer', () => {
   it('should be a constructor', () => {
@@ -76,6 +77,36 @@ describe('PlainSerializer', () => {
           rdf.namedNode('http://example.org/predicate3'),
           rdf.literal('123.0', rdf.namedNode('http://www.w3.org/2001/XMLSchema#double')),
           rdf.namedNode('http://example.org/graph')
+        )
+      ]
+      const serializer = new PlainSerializer()
+      const code = serializer.transform(quads)
+      const result = eval(code)(rdf) /* eslint-disable-line no-eval */
+
+      strictEqual(toCanonical(result), toCanonical(quads))
+    })
+
+    it('should not use reserved words for prefixes', () => {
+      const quads = [
+        rdf.quad(
+          rdf.blankNode(),
+          ns.rdf.type,
+          ns._void.Dataset
+        )
+      ]
+      const serializer = new PlainSerializer()
+      const code = serializer.transform(quads)
+      const result = eval(code)(rdf) /* eslint-disable-line no-eval */
+
+      strictEqual(toCanonical(result), toCanonical(quads))
+    })
+
+    it('should generate prefixes for all named nodes', () => {
+      const quads = [
+        rdf.quad(
+          rdf.namedNode('http://example.com/Foo'),
+          rdf.namedNode('http://example.org/Bar'),
+          rdf.namedNode('http://example.com/Baz')
         )
       ]
       const serializer = new PlainSerializer()
