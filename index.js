@@ -8,7 +8,7 @@ class Serializer extends Sink {
   }
 
   transform (quads) {
-    return (new PlainSerializer()).transform(quads, this.options)
+    return (new PlainSerializer(this.options)).transform(quads)
   }
 }
 
