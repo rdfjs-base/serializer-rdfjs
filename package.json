@@ -31,7 +31,6 @@
   "devDependencies": {
     "@rdfjs/data-model": "^1.1.2",
     "@tpluscode/rdf-ns-builders": "^0.3.5",
-    "chai": "^4.2.0",
     "into-stream": "^5.1.1",
     "mocha": "^8.0.1",
     "nyc": "^15.1.0",
