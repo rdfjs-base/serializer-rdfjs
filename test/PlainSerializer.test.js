@@ -115,5 +115,20 @@ describe('PlainSerializer', () => {
 
       strictEqual(toCanonical(result), toCanonical(quads))
     })
+
+    it('should correctly serialize which end in slashes and hashes', () => {
+      const quads = [
+        rdf.quad(
+          rdf.namedNode('http://example.com/'),
+          rdf.namedNode('http://example.org/vocab#'),
+          rdf.namedNode('http://example.org/foo/')
+        )
+      ]
+      const serializer = new PlainSerializer()
+      const code = serializer.transform(quads)
+      const result = eval(code)(rdf) /* eslint-disable-line no-eval */
+
+      strictEqual(toCanonical(result), toCanonical(quads))
+    })
   })
 })
