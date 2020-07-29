@@ -63,6 +63,27 @@ output.on('data', code => {
 })
 ```
 
+### Target module type
+
+By default the serializer will produce CommonJS module. An optional parameter can be used to have it render plain ES Module or TypeScript
+
+#### Example
+
+```js
+const Serializer = require('@rdfjs/serializer-rdfjs')
+const quadStream = require('./quads')
+
+// serialize to ES Modules by default
+const serializer = new Serializer({
+  module: 'esm'
+})
+
+// call to .import also accepts same options parameter
+const typescriptStream = serializer.import(quadStream, {
+  module: 'ts'
+})
+```
+
 ### transform(quads)
 
 The actual serializer code runs sync and the RDFJS Sink interface is just a wrapper. 
