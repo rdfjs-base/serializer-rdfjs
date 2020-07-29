@@ -130,5 +130,35 @@ describe('PlainSerializer', () => {
 
       strictEqual(toCanonical(result), toCanonical(quads))
     })
+
+    it('should escape interpolation in literals', () => {
+      const quads = [
+        rdf.quad(
+          rdf.namedNode('http://example.com/'),
+          rdf.namedNode('http://example.org/vocab#'),
+          rdf.literal('${foo} ${bar}')
+        )
+      ]
+      const serializer = new PlainSerializer()
+      const code = serializer.transform(quads)
+      const result = eval(code)(rdf) /* eslint-disable-line no-eval */
+
+      strictEqual(toCanonical(result), toCanonical(quads))
+    })
+
+    it('should escape backticks in literals', () => {
+      const quads = [
+        rdf.quad(
+          rdf.namedNode('http://example.com/'),
+          rdf.namedNode('http://example.org/vocab#'),
+          rdf.literal('`string template`')
+        )
+      ]
+      const serializer = new PlainSerializer()
+      const code = serializer.transform(quads)
+      const result = eval(code)(rdf) /* eslint-disable-line no-eval */
+
+      strictEqual(toCanonical(result), toCanonical(quads))
+    })
   })
 })
