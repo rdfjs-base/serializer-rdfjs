@@ -1,9 +1,10 @@
-const { strictEqual } = require('assert')
+const { strictEqual, ok } = require('assert')
 const { describe, it } = require('mocha')
 const toCanonical = require('rdf-dataset-ext/toCanonical')
 const rdf = require('@rdfjs/data-model')
 const PlainSerializer = require('../lib/PlainSerializer')
 const ns = require('@tpluscode/rdf-ns-builders')
+const { CommonjsWriter } = require('../lib/writer')
 
 describe('PlainSerializer', () => {
   it('should be a constructor', () => {
@@ -136,7 +137,7 @@ describe('PlainSerializer', () => {
         rdf.quad(
           rdf.namedNode('http://example.com/'),
           rdf.namedNode('http://example.org/vocab#'),
-          rdf.literal('${foo} ${bar}')
+          rdf.literal('${foo} ${bar}') /* eslint-disable-line no-template-curly-in-string */
         )
       ]
       const serializer = new PlainSerializer()
@@ -159,6 +160,12 @@ describe('PlainSerializer', () => {
       const result = eval(code)(rdf) /* eslint-disable-line no-eval */
 
       strictEqual(toCanonical(result), toCanonical(quads))
+    })
+
+    it('should write commonjs by default', () => {
+      const serializer = new PlainSerializer()
+
+      ok(serializer.writer instanceof CommonjsWriter)
     })
   })
 })

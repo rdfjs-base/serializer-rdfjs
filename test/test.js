@@ -1,4 +1,4 @@
-const { strictEqual } = require('assert')
+const { strictEqual, match } = require('assert')
 const getStream = require('get-stream')
 const intoStream = require('into-stream')
 const { describe, it } = require('mocha')
@@ -6,6 +6,7 @@ const toCanonical = require('rdf-dataset-ext/toCanonical')
 const rdf = require('@rdfjs/data-model')
 const sinkTest = require('@rdfjs/sink/test')
 const Serializer = require('..')
+const { singleQuad } = require('./support/examples')
 
 describe('Serializer', () => {
   sinkTest(Serializer, { readable: true })
@@ -78,6 +79,37 @@ describe('Serializer', () => {
       const result = eval(code)(rdf) /* eslint-disable-line no-eval */
 
       strictEqual(toCanonical(result), toCanonical(quads))
+    })
+
+    it('should use module exports syntax', () => {
+      const quads = singleQuad
+
+      const serializer = new Serializer()
+      const code = serializer.transform(quads)
+
+      match(code, /module.exports = /g)
+    })
+
+    describe('writing ES module', () => {
+      it('should use module exports syntax', () => {
+        const quads = singleQuad
+
+        const serializer = new Serializer({ module: 'esm' })
+        const code = serializer.transform(quads)
+
+        match(code, /export default \(/g)
+      })
+    })
+
+    describe('writing TypeScript', () => {
+      it('should export annotated module', () => {
+        const quads = singleQuad
+
+        const serializer = new Serializer({ module: 'ts' })
+        const code = serializer.transform(quads)
+
+        match(code, /export default (.+): Quad\[] => {/g)
+      })
     })
   })
 })
