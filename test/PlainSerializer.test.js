@@ -177,6 +177,21 @@ describe('PlainSerializer', () => {
       strictEqual(toCanonical(result), toCanonical(quads))
     })
 
+    it('should gracefully handle unprefixable named nodes', () => {
+      const quads = [
+        rdf.quad(
+          rdf.blankNode(),
+          ns.vcard.email,
+          rdf.namedNode('mailto:edd@usefulinc.com')
+        )
+      ]
+      const serializer = new PlainSerializer()
+      const code = serializer.transform(quads)
+      const result = eval(code)(rdf) /* eslint-disable-line no-eval */
+
+      strictEqual(toCanonical(result), toCanonical(quads))
+    })
+
     it('should write commonjs by default', () => {
       const serializer = new PlainSerializer()
 
