@@ -108,7 +108,7 @@ describe('Serializer', () => {
         const serializer = new Serializer({ module: 'ts' })
         const code = serializer.transform(quads)
 
-        match(code, /export default (.+): Quad\[] => {/g)
+        match(code, /export default (.+): RDF.Quad\[] => {/g)
       })
     })
   })
