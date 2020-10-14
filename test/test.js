@@ -90,6 +90,13 @@ describe('Serializer', () => {
       match(code, /module.exports = /g)
     })
 
+    it('does not destructure factory when there are no quads', () => {
+      const serializer = new Serializer()
+      const code = serializer.transform([])
+
+      match(code, /module.exports = \({\s+}\) => {/g)
+    })
+
     describe('writing ES module', () => {
       it('should use module exports syntax', () => {
         const quads = singleQuad
@@ -98,6 +105,13 @@ describe('Serializer', () => {
         const code = serializer.transform(quads)
 
         match(code, /export default \(/g)
+      })
+
+      it('does not destructure factory when there are no quads', () => {
+        const serializer = new Serializer({ module: 'esm' })
+        const code = serializer.transform([])
+
+        match(code, /export default \({\s+}\) => {/g)
       })
     })
 
@@ -109,6 +123,13 @@ describe('Serializer', () => {
         const code = serializer.transform(quads)
 
         match(code, /export default (.+): RDF.Quad\[] => {/g)
+      })
+
+      it('does not destructure factory when there are no quads', () => {
+        const serializer = new Serializer({ module: 'ts' })
+        const code = serializer.transform([])
+
+        match(code, /export default \({\s+}: RDF.DataFactory\): RDF.Quad\[] => {/g)
       })
     })
   })
