@@ -122,14 +122,14 @@ describe('Serializer', () => {
         const serializer = new Serializer({ module: 'ts' })
         const code = serializer.transform(quads)
 
-        match(code, /export default (.+): RDF.Quad\[] => {/g)
+        match(code, /export default (.+): import\('rdf-js'\).Quad\[] => {/g)
       })
 
       it('does not destructure factory when there are no quads', () => {
         const serializer = new Serializer({ module: 'ts' })
         const code = serializer.transform([])
 
-        match(code, /export default \({\s+}: RDF.DataFactory\): RDF.Quad\[] => {/g)
+        match(code, /export default \({\s+}: import\('rdf-js'\).DataFactory\): import\('rdf-js'\).Quad\[] => {/g)
       })
     })
   })
