@@ -1,15 +1,15 @@
 # @rdfjs/serializer-rdfjs
 
-[![Build Status](https://travis-ci.org/rdfjs-base/serializer-rdfjs.svg?branch=master)](https://travis-ci.org/rdfjs-base/serializer-rdfjs)
+[![Build Status](https://img.shields.io/github/workflow/status/rdfjs-base/serializer-rdfjs/CI)](https://github.com/rdfjs-base/serializer-rdfjs/actions/workflows/ci.yaml)
 
 [![npm version](https://img.shields.io/npm/v/@rdfjs/serializer-rdfjs.svg)](https://www.npmjs.com/package/@rdfjs/serializer-rdfjs)
 
-RDFJS JavaScript code serializer that implements the [RDFJS Sink interface](http://rdf.js.org/).
+RDF/JS JavaScript code serializer that implements the [RDF/JS Sink interface](http://rdf.js.org/).
+It serializes the given quads to a JavaScript module that exports a single function, like shown below.
+The created function will return an array of the re-created quads. 
 
-It serializes a dataset as a JavaScript module which exports a single `(factory: DataFactory) => Quad[]` function. The function will re-create the original dataset's quads using RDF/JS interface.
-
-```js
-module.exports = factory => {
+```javascript
+export default ({ factory }) => {
   return [
     factory.quad(
       factory.blankNode('foo'),
@@ -23,19 +23,20 @@ module.exports = factory => {
 ## Usage
 
 The package exports the serializer as a class, so an instance must be created before it can be used.
-The `.import` method, as defined in the [RDFJS specification](http://rdf.js.org/#sink-interface), must be called to do the actual serialization.
+The `.import` method, as defined in the [RDF/JS specification](http://rdf.js.org/#sink-interface), must be called to do the actual serialization.
 It expects a quad stream as argument.
-The method will return a stream which emits the JavaScript code as a string.
+The method will return a stream that emits the JavaScript code as a string.
 
 ### Example
 
 This example shows how to create a serializer instance and how to feed it with a stream of quads.
-The code emitted by the serializer will be written to the console.
+The code emitted by the serializer will be written to stdout.
 
 ```javascript
-const rdf = require('@rdfjs/data-model')
-const { Readable } = require('stream')
-const Serializer = require('@rdfjs/serializer-rdfjs')
+import { Readable } from 'stream'
+import rdf from '@rdfjs/data-model'
+import Serializer from '@rdfjs/serializer-rdfjs'
+
 
 const serializer = new Serializer()
 const input = new Readable({
@@ -56,26 +57,25 @@ const input = new Readable({
     input.push(null)
   }
 })
-const output = serializer.import(input)
 
-output.on('data', code => {
-  console.log(code)
-})
+const output = serializer.import(input)
+output.pipe(process.stdout)
 ```
 
 ### Target module type
 
-By default the serializer will produce CommonJS module. An optional parameter can be used to have it render plain ES Module or TypeScript
+By default, the serializer will produce an ECMAScript module.
+The optional argument `module` can be used to serialize it to CommonJS or TypeScript.
 
 #### Example
 
 ```js
-const Serializer = require('@rdfjs/serializer-rdfjs')
-const quadStream = require('./quads')
+import Serializer from '@rdfjs/serializer-rdfjs'
+import quadStream from './quads'
 
-// serialize to ES Modules by default
+// serialize to CommonJS by default
 const serializer = new Serializer({
-  module: 'esm'
+  module: 'commonjs'
 })
 
 // call to .import also accepts same options parameter
@@ -86,8 +86,8 @@ const typescriptStream = serializer.import(quadStream, {
 
 ### transform(quads)
 
-The actual serializer code runs sync and the RDFJS Sink interface is just a wrapper. 
-If your use case is very specific, with a low change to use other formats, it can be used directly.
+The actual serializer code runs sync, and the RDF/JS Sink interface is just a wrapper. 
+If your use case is very specific, with a low chance to use other formats, it can be used directly.
 The `.transform` method accepts quads provided as an object that implements the `Symbol.iterator` method.
 It returns the generated JavaScript code as a string.
 
@@ -97,8 +97,8 @@ This example shows how to create a serializer instance and how to feed it with q
 The returned code will be written to the console.
 
 ```javascript
-const rdf = require('@rdfjs/data-model')
-const Serializer = require('@rdfjs/serializer-rdfjs')
+import rdf from '@rdfjs/data-model'
+import Serializer from '@rdfjs/serializer-rdfjs'
 
 const serializer = new Serializer()
 const code = serializer.transform([
