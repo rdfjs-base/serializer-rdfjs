@@ -75,7 +75,7 @@ import quadStream from './quads'
 
 // serialize to CommonJS by default
 const serializer = new Serializer({
-  module: 'esm'
+  module: 'commonjs'
 })
 
 // call to .import also accepts same options parameter
