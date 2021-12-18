@@ -1,12 +1,11 @@
-const { strictEqual, match } = require('assert')
-const getStream = require('get-stream')
-const intoStream = require('into-stream')
-const { describe, it } = require('mocha')
-const toCanonical = require('rdf-dataset-ext/toCanonical')
-const rdf = require('@rdfjs/data-model')
-const sinkTest = require('@rdfjs/sink/test')
-const Serializer = require('..')
-const { singleQuad } = require('./support/examples')
+import { doesNotReject, strictEqual } from 'assert'
+import sinkTest from '@rdfjs/sink/test/index.js'
+import getStream from 'get-stream'
+import { describe, it } from 'mocha'
+import toCanonical from 'rdf-dataset-ext/toCanonical.js'
+import Serializer from '../index.js'
+import * as example from './support/example.js'
+import run from './support/run.js'
 
 describe('Serializer', () => {
   sinkTest(Serializer, { readable: true })
@@ -15,35 +14,90 @@ describe('Serializer', () => {
     strictEqual(typeof Serializer, 'function')
   })
 
-  it('should serialize the given quad stream to a RDFJS code stream', async () => {
-    const blankNode0 = rdf.blankNode()
-    const blankNode1 = rdf.blankNode()
-    const quads = [
-      rdf.quad(
-        blankNode0,
-        rdf.namedNode('http://example.org/predicate1'),
-        rdf.literal('object')
-      ),
-      rdf.quad(
-        blankNode0,
-        rdf.namedNode('http://example.org/predicate2'),
-        rdf.literal('text', 'en')
-      ),
-      rdf.quad(
-        blankNode1,
-        rdf.namedNode('http://example.org/predicate3'),
-        rdf.literal('123.0', rdf.namedNode('http://www.w3.org/2001/XMLSchema#double')),
-        rdf.namedNode('http://example.org/graph')
-      )
-    ]
-    const input = intoStream.object(quads)
+  it('should serialize an empty list of quads to a executable JavaScript code', async () => {
+    const { stream } = await example.empty()
     const serializer = new Serializer()
+    const code = await getStream(serializer.import(stream))
 
-    const code = await getStream(serializer.import(input))
+    await doesNotReject(async () => {
+      await run(code)
+    })
+  })
 
-    const result = eval(code)(rdf) /* eslint-disable-line no-eval */
+  it('should serialize an empty list of quads to a RDF/JS builder function', async () => {
+    const { quads, stream } = await example.empty()
+    const serializer = new Serializer()
+    const code = await getStream(serializer.import(stream))
+    const result = await run(code)
 
     strictEqual(toCanonical(result), toCanonical(quads))
+  })
+
+  it('should serialize an empty list of quads to a ESM RDF/JS builder module', async () => {
+    const { codeEsm, stream } = await example.empty()
+    const serializer = new Serializer()
+    const code = await getStream(serializer.import(stream))
+
+    strictEqual(code, codeEsm)
+  })
+
+  it('should serialize an empty list of quads to a CommonJS RDF/JS builder module if module is commonjs', async () => {
+    const { codeCommonJs, stream } = await example.empty()
+    const serializer = new Serializer({ module: 'commonjs' })
+    const code = await getStream(serializer.import(stream))
+
+    strictEqual(code, codeCommonJs)
+  })
+
+  it('should serialize an empty list of quads to a TypeScript RDF/JS builder module if module is ts', async () => {
+    const { codeTs, stream } = await example.empty()
+    const serializer = new Serializer({ module: 'ts' })
+    const code = await getStream(serializer.import(stream))
+
+    strictEqual(code, codeTs)
+  })
+
+  it('should serialize the given quads to a executable JavaScript code', async () => {
+    const { stream } = await example.simple()
+    const serializer = new Serializer()
+    const code = await getStream(serializer.import(stream))
+
+    await doesNotReject(async () => {
+      await run(code)
+    })
+  })
+
+  it('should serialize the given quads to a RDF/JS builder function', async () => {
+    const { quads, stream } = await example.simple()
+    const serializer = new Serializer()
+    const code = await getStream(serializer.import(stream))
+    const result = await run(code)
+
+    strictEqual(toCanonical(result), toCanonical(quads))
+  })
+
+  it('should serialize the given quads to a ESM RDF/JS builder module', async () => {
+    const { codeEsm, stream } = await example.simple()
+    const serializer = new Serializer()
+    const code = await getStream(serializer.import(stream))
+
+    strictEqual(code, codeEsm)
+  })
+
+  it('should serialize the given quads to a CommonJS RDF/JS builder module if module is commonjs', async () => {
+    const { codeCommonJs, stream } = await example.simple()
+    const serializer = new Serializer({ module: 'commonjs' })
+    const code = await getStream(serializer.import(stream))
+
+    strictEqual(code, codeCommonJs)
+  })
+
+  it('should serialize the given quads to a TypeScript RDF/JS builder module if module is ts', async () => {
+    const { codeTs, stream } = await example.simple()
+    const serializer = new Serializer({ module: 'ts' })
+    const code = await getStream(serializer.import(stream))
+
+    strictEqual(code, codeTs)
   })
 
   describe('transform', () => {
@@ -53,84 +107,47 @@ describe('Serializer', () => {
       strictEqual(typeof serializer.transform, 'function')
     })
 
-    it('should serialize the given quads to RDFJS code', () => {
-      const blankNode0 = rdf.blankNode()
-      const blankNode1 = rdf.blankNode()
-      const quads = [
-        rdf.quad(
-          blankNode0,
-          rdf.namedNode('http://example.org/predicate1'),
-          rdf.literal('object')
-        ),
-        rdf.quad(
-          blankNode0,
-          rdf.namedNode('http://example.org/predicate2'),
-          rdf.literal('text', 'en')
-        ),
-        rdf.quad(
-          blankNode1,
-          rdf.namedNode('http://example.org/predicate3'),
-          rdf.literal('123.0', rdf.namedNode('http://www.w3.org/2001/XMLSchema#double')),
-          rdf.namedNode('http://example.org/graph')
-        )
-      ]
+    it('should serialize the given quads to a executable JavaScript code', async () => {
+      const { quads } = await example.simple()
       const serializer = new Serializer()
       const code = serializer.transform(quads)
-      const result = eval(code)(rdf) /* eslint-disable-line no-eval */
+
+      await doesNotReject(async () => {
+        await run(code)
+      })
+    })
+
+    it('should serialize the given quads to a RDF/JS builder function', async () => {
+      const { quads } = await example.simple()
+      const serializer = new Serializer()
+      const code = serializer.transform(quads)
+      const result = await run(code)
 
       strictEqual(toCanonical(result), toCanonical(quads))
     })
 
-    it('should use module exports syntax', () => {
-      const quads = singleQuad
-
+    it('should serialize the given quads to a ESM RDF/JS builder module', async () => {
+      const { codeEsm, quads } = await example.simple()
       const serializer = new Serializer()
       const code = serializer.transform(quads)
 
-      match(code, /module.exports = /g)
+      strictEqual(code, codeEsm)
     })
 
-    it('does not destructure factory when there are no quads', () => {
-      const serializer = new Serializer()
-      const code = serializer.transform([])
+    it('should serialize the given quads to a CommonJS RDF/JS builder module if module is commonjs', async () => {
+      const { codeCommonJs, quads } = await example.simple()
+      const serializer = new Serializer({ module: 'commonjs' })
+      const code = serializer.transform(quads)
 
-      match(code, /module.exports = \({\s+}\) => {/g)
+      strictEqual(code, codeCommonJs)
     })
 
-    describe('writing ES module', () => {
-      it('should use module exports syntax', () => {
-        const quads = singleQuad
+    it('should serialize the given quads to a TypeScript RDF/JS builder module if module is ts', async () => {
+      const { codeTs, quads } = await example.simple()
+      const serializer = new Serializer({ module: 'ts' })
+      const code = serializer.transform(quads)
 
-        const serializer = new Serializer({ module: 'esm' })
-        const code = serializer.transform(quads)
-
-        match(code, /export default \(/g)
-      })
-
-      it('does not destructure factory when there are no quads', () => {
-        const serializer = new Serializer({ module: 'esm' })
-        const code = serializer.transform([])
-
-        match(code, /export default \({\s+}\) => {/g)
-      })
-    })
-
-    describe('writing TypeScript', () => {
-      it('should export annotated module', () => {
-        const quads = singleQuad
-
-        const serializer = new Serializer({ module: 'ts' })
-        const code = serializer.transform(quads)
-
-        match(code, /export default (.+): import\('rdf-js'\).Quad\[] => {/g)
-      })
-
-      it('does not destructure factory when there are no quads', () => {
-        const serializer = new Serializer({ module: 'ts' })
-        const code = serializer.transform([])
-
-        match(code, /export default \({\s+}: import\('rdf-js'\).DataFactory\): import\('rdf-js'\).Quad\[] => {/g)
-      })
+      strictEqual(code, codeTs)
     })
   })
 })

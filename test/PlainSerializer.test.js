@@ -1,10 +1,11 @@
-const { strictEqual, ok } = require('assert')
-const { describe, it } = require('mocha')
-const toCanonical = require('rdf-dataset-ext/toCanonical')
-const rdf = require('@rdfjs/data-model')
-const PlainSerializer = require('../lib/PlainSerializer')
-const ns = require('@tpluscode/rdf-ns-builders')
-const { CommonjsWriter } = require('../lib/writer')
+import { doesNotReject, strictEqual, throws } from 'assert'
+import rdf from '@rdfjs/data-model'
+import { describe, it } from 'mocha'
+import toCanonical from 'rdf-dataset-ext/toCanonical.js'
+import PlainSerializer from '../lib/PlainSerializer.js'
+import ECMAScriptModuleWriter from '../lib/writer/ECMAScriptModuleWriter.js'
+import * as example from './support/example.js'
+import run, { load } from './support/run.js'
 
 describe('PlainSerializer', () => {
   it('should be a constructor', () => {
@@ -18,20 +19,18 @@ describe('PlainSerializer', () => {
       strictEqual(typeof serializer.transform, 'function')
     })
 
-    it('should generate valid JavaScript code', () => {
+    it('should generate valid JavaScript code', async () => {
       const serializer = new PlainSerializer()
 
       const code = serializer.transform([])
 
-      eval(code) /* eslint-disable-line no-eval */
+      await doesNotReject(async () => {
+        await load(code)
+      })
     })
 
-    it('should generate code that uses the given factory', () => {
-      const quad = rdf.quad(
-        rdf.blankNode(),
-        rdf.namedNode('http://example.org/predicate'),
-        rdf.literal('object')
-      )
+    it('should generate code that uses the given factory', async () => {
+      const { quads } = await example.simple()
       const called = {}
       const factory = {
         blankNode: () => {
@@ -49,9 +48,9 @@ describe('PlainSerializer', () => {
       }
       const serializer = new PlainSerializer()
 
-      const code = serializer.transform([quad])
+      const code = serializer.transform(quads)
 
-      eval(code)(factory) /* eslint-disable-line no-eval */
+      await run(code, { factory })
 
       strictEqual(called.blankNode, true)
       strictEqual(called.literal, true)
@@ -59,143 +58,80 @@ describe('PlainSerializer', () => {
       strictEqual(called.quad, true)
     })
 
-    it('should generate code that returns quads which are canonical equal to the given quads', () => {
-      const blankNode0 = rdf.blankNode()
-      const blankNode1 = rdf.blankNode()
-      const quads = [
-        rdf.quad(
-          blankNode0,
-          rdf.namedNode('http://example.org/predicate1'),
-          rdf.literal('object')
-        ),
-        rdf.quad(
-          blankNode0,
-          rdf.namedNode('http://example.org/predicate2'),
-          rdf.literal('text', 'en')
-        ),
-        rdf.quad(
-          blankNode1,
-          rdf.namedNode('http://example.org/predicate3'),
-          rdf.literal('123.0', rdf.namedNode('http://www.w3.org/2001/XMLSchema#double')),
-          rdf.namedNode('http://example.org/graph')
-        )
-      ]
+    it('should throw an error if an unknown termType is given', async () => {
+      const quads = [rdf.quad(
+        rdf.namedNode('http://example.com/'),
+        rdf.namedNode('http://example.org/vocab#'),
+        'test'
+      )]
+      const serializer = new PlainSerializer()
+
+      throws(() => {
+        serializer.transform(quads)
+      })
+    })
+
+    it('should generate code that returns quads which are canonical equal to the given quads', async () => {
+      const { quads } = await example.simple()
       const serializer = new PlainSerializer()
       const code = serializer.transform(quads)
-      const result = eval(code)(rdf) /* eslint-disable-line no-eval */
+      const result = await run(code)
 
       strictEqual(toCanonical(result), toCanonical(quads))
     })
 
-    it('should not use reserved words for prefixes', () => {
-      const quads = [
-        rdf.quad(
-          rdf.blankNode(),
-          ns.rdf.type,
-          ns._void.Dataset
-        )
-      ]
+    it('should generate prefixes for all named nodes', async () => {
+      const { quads } = await example.simple()
       const serializer = new PlainSerializer()
       const code = serializer.transform(quads)
-      const result = eval(code)(rdf) /* eslint-disable-line no-eval */
 
-      strictEqual(toCanonical(result), toCanonical(quads))
-    })
+      const result = code.match(/const ns[0-9] = '.*'/g)
 
-    it('should generate prefixes for all named nodes', () => {
-      const quads = [
-        rdf.quad(
-          rdf.namedNode('http://example.com/Foo'),
-          rdf.namedNode('http://example.org/Bar'),
-          rdf.namedNode('http://example.com/Baz')
-        )
-      ]
-      const serializer = new PlainSerializer()
-      const code = serializer.transform(quads)
-      const result = eval(code)(rdf) /* eslint-disable-line no-eval */
-
-      strictEqual(toCanonical(result), toCanonical(quads))
+      strictEqual(result.length, 2)
     })
 
     it('should correctly serialize which end in slashes and hashes', () => {
-      const quads = [
-        rdf.quad(
-          rdf.namedNode('http://example.com/'),
-          rdf.namedNode('http://example.org/vocab#'),
-          rdf.namedNode('http://example.org/foo/')
-        )
-      ]
+      const quads = [rdf.quad(
+        rdf.namedNode('http://example.com/bar'),
+        rdf.namedNode('http://example.org/vocab#'),
+        rdf.namedNode('http://example.org/foo/')
+      )]
       const serializer = new PlainSerializer()
       const code = serializer.transform(quads)
-      const result = eval(code)(rdf) /* eslint-disable-line no-eval */
 
-      strictEqual(toCanonical(result), toCanonical(quads))
+      strictEqual(/const ns[0-9] = 'http:\/\/example.com\/'/.test(code), true)
+      strictEqual(/const ns[0-9] = 'http:\/\/example.org\/vocab#'/.test(code), true)
+      strictEqual(/const ns[0-9] = 'http:\/\/example.org\/foo\/'/.test(code), true)
     })
 
-    it('should escape interpolation in literals', () => {
-      const quads = [
-        rdf.quad(
-          rdf.namedNode('http://example.com/'),
-          rdf.namedNode('http://example.org/vocab#'),
-          rdf.literal('${foo} ${bar}') /* eslint-disable-line no-template-curly-in-string */
-        )
-      ]
+    it('should escape quotes in literals', () => {
+      const quads = [rdf.quad(
+        rdf.namedNode('http://example.com/'),
+        rdf.namedNode('http://example.org/vocab#'),
+        rdf.literal('\'')
+      )]
       const serializer = new PlainSerializer()
       const code = serializer.transform(quads)
-      const result = eval(code)(rdf) /* eslint-disable-line no-eval */
 
-      strictEqual(toCanonical(result), toCanonical(quads))
-    })
-
-    it('should escape backticks in literals', () => {
-      const quads = [
-        rdf.quad(
-          rdf.namedNode('http://example.com/'),
-          rdf.namedNode('http://example.org/vocab#'),
-          rdf.literal('`string template`')
-        )
-      ]
-      const serializer = new PlainSerializer()
-      const code = serializer.transform(quads)
-      const result = eval(code)(rdf) /* eslint-disable-line no-eval */
-
-      strictEqual(toCanonical(result), toCanonical(quads))
-    })
-
-    it('should correctly match prefixed terms with dash', () => {
-      const quads = [
-        rdf.quad(
-          ns.dash('Action-actionGroup'),
-          ns.rdf.type,
-          ns.sh.PropertyShape
-        )
-      ]
-      const serializer = new PlainSerializer()
-      const code = serializer.transform(quads)
-      const result = eval(code)(rdf) /* eslint-disable-line no-eval */
-
-      strictEqual(toCanonical(result), toCanonical(quads))
+      strictEqual(code.includes('f.literal(\'\\\'\')'), true)
     })
 
     it('should gracefully handle unprefixable named nodes', () => {
-      const quads = [
-        rdf.quad(
-          rdf.blankNode(),
-          ns.vcard.email,
-          rdf.namedNode('mailto:edd@usefulinc.com')
-        )
-      ]
+      const quads = [rdf.quad(
+        rdf.blankNode(),
+        rdf.namedNode('http://example.org/mail'),
+        rdf.namedNode('mailto:edd@usefulinc.com')
+      )]
       const serializer = new PlainSerializer()
       const code = serializer.transform(quads)
-      const result = eval(code)(rdf) /* eslint-disable-line no-eval */
 
-      strictEqual(toCanonical(result), toCanonical(quads))
+      strictEqual(code.includes('f.namedNode(\'mailto:edd@usefulinc.com\')'), true)
     })
 
-    it('should write commonjs by default', () => {
+    it('should write ESM by default', () => {
       const serializer = new PlainSerializer()
 
-      ok(serializer.writer instanceof CommonjsWriter)
+      strictEqual(serializer.writer instanceof ECMAScriptModuleWriter, true)
     })
   })
 })

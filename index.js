@@ -1,6 +1,6 @@
-const PlainSerializer = require('./lib/PlainSerializer')
-const SerializerStream = require('./lib/SerializerStream')
-const Sink = require('@rdfjs/sink')
+import Sink from '@rdfjs/sink'
+import PlainSerializer from './lib/PlainSerializer.js'
+import SerializerStream from './lib/SerializerStream.js'
 
 class Serializer extends Sink {
   constructor (options) {
@@ -12,4 +12,4 @@ class Serializer extends Sink {
   }
 }
 
-module.exports = Serializer
+export default Serializer
