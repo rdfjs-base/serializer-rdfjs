@@ -1,6 +1,6 @@
 /* This file was automatically generated. Do not edit by hand. */
 
-export default ({ factory: any }): import('rdf-js').Quad[] => {
+export default ({ factory }: { factory: import('rdf-js').DataFactory }): import('rdf-js').Quad[] => {
   const f = factory
   const ns1 = 'http://example.org/'
   const ns2 = 'http://www.w3.org/2001/XMLSchema#'
