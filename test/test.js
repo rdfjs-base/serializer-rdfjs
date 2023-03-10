@@ -1,8 +1,8 @@
 import { doesNotReject, strictEqual } from 'assert'
 import sinkTest from '@rdfjs/sink/test/index.js'
-import getStream from 'get-stream'
 import { describe, it } from 'mocha'
 import toCanonical from 'rdf-dataset-ext/toCanonical.js'
+import decode from 'stream-chunks/decode.js'
 import Serializer from '../index.js'
 import * as example from './support/example.js'
 import run from './support/run.js'
@@ -17,7 +17,7 @@ describe('Serializer', () => {
   it('should serialize an empty list of quads to a executable JavaScript code', async () => {
     const { stream } = await example.empty()
     const serializer = new Serializer()
-    const code = await getStream(serializer.import(stream))
+    const code = await decode(serializer.import(stream))
 
     await doesNotReject(async () => {
       await run(code)
@@ -27,7 +27,7 @@ describe('Serializer', () => {
   it('should serialize an empty list of quads to a RDF/JS builder function', async () => {
     const { quads, stream } = await example.empty()
     const serializer = new Serializer()
-    const code = await getStream(serializer.import(stream))
+    const code = await decode(serializer.import(stream))
     const result = await run(code)
 
     strictEqual(toCanonical(result), toCanonical(quads))
@@ -36,7 +36,7 @@ describe('Serializer', () => {
   it('should serialize an empty list of quads to a ESM RDF/JS builder module', async () => {
     const { codeEsm, stream } = await example.empty()
     const serializer = new Serializer()
-    const code = await getStream(serializer.import(stream))
+    const code = await decode(serializer.import(stream))
 
     strictEqual(code, codeEsm)
   })
@@ -44,7 +44,7 @@ describe('Serializer', () => {
   it('should serialize an empty list of quads to a CommonJS RDF/JS builder module if module is commonjs', async () => {
     const { codeCommonJs, stream } = await example.empty()
     const serializer = new Serializer({ module: 'commonjs' })
-    const code = await getStream(serializer.import(stream))
+    const code = await decode(serializer.import(stream))
 
     strictEqual(code, codeCommonJs)
   })
@@ -52,7 +52,7 @@ describe('Serializer', () => {
   it('should serialize an empty list of quads to a TypeScript RDF/JS builder module if module is ts', async () => {
     const { codeTs, stream } = await example.empty()
     const serializer = new Serializer({ module: 'ts' })
-    const code = await getStream(serializer.import(stream))
+    const code = await decode(serializer.import(stream))
 
     strictEqual(code, codeTs)
   })
@@ -60,7 +60,7 @@ describe('Serializer', () => {
   it('should serialize the given quads to a executable JavaScript code', async () => {
     const { stream } = await example.simple()
     const serializer = new Serializer()
-    const code = await getStream(serializer.import(stream))
+    const code = await decode(serializer.import(stream))
 
     await doesNotReject(async () => {
       await run(code)
@@ -70,7 +70,7 @@ describe('Serializer', () => {
   it('should serialize the given quads to a RDF/JS builder function', async () => {
     const { quads, stream } = await example.simple()
     const serializer = new Serializer()
-    const code = await getStream(serializer.import(stream))
+    const code = await decode(serializer.import(stream))
     const result = await run(code)
 
     strictEqual(toCanonical(result), toCanonical(quads))
@@ -79,7 +79,7 @@ describe('Serializer', () => {
   it('should serialize the given quads to a ESM RDF/JS builder module', async () => {
     const { codeEsm, stream } = await example.simple()
     const serializer = new Serializer()
-    const code = await getStream(serializer.import(stream))
+    const code = await decode(serializer.import(stream))
 
     strictEqual(code, codeEsm)
   })
@@ -87,7 +87,7 @@ describe('Serializer', () => {
   it('should serialize the given quads to a CommonJS RDF/JS builder module if module is commonjs', async () => {
     const { codeCommonJs, stream } = await example.simple()
     const serializer = new Serializer({ module: 'commonjs' })
-    const code = await getStream(serializer.import(stream))
+    const code = await decode(serializer.import(stream))
 
     strictEqual(code, codeCommonJs)
   })
@@ -95,7 +95,7 @@ describe('Serializer', () => {
   it('should serialize the given quads to a TypeScript RDF/JS builder module if module is ts', async () => {
     const { codeTs, stream } = await example.simple()
     const serializer = new Serializer({ module: 'ts' })
-    const code = await getStream(serializer.import(stream))
+    const code = await decode(serializer.import(stream))
 
     strictEqual(code, codeTs)
   })
