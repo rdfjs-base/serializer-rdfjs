@@ -1,6 +1,6 @@
 # @rdfjs/serializer-rdfjs
 
-[![Build Status](https://img.shields.io/github/workflow/status/rdfjs-base/serializer-rdfjs/CI)](https://github.com/rdfjs-base/serializer-rdfjs/actions/workflows/ci.yaml)
+[![build status](https://img.shields.io/github/actions/workflow/status/rdfjs-base/serializer-rdfjs/test.yaml?branch=master)](https://github.com/rdfjs-base/serializer-rdfjs/actions/workflows/test.yaml)
 
 [![npm version](https://img.shields.io/npm/v/@rdfjs/serializer-rdfjs.svg)](https://www.npmjs.com/package/@rdfjs/serializer-rdfjs)
 
