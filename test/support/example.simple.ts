@@ -1,10 +1,10 @@
 /* This file was automatically generated. Do not edit by hand. */
 
-export default ({ factory }: { factory: import('rdf-js').DataFactory }): import('rdf-js').Quad[] => {
+export default ({ factory }: { factory: import('@rdfjs/types').DataFactory }): import('@rdfjs/types').Quad[] => {
   const f = factory
   const ns1 = 'http://example.org/'
   const ns2 = 'http://www.w3.org/2001/XMLSchema#'
-  const blankNodes: import('rdf-js').BlankNode[] = []
+  const blankNodes: import('@rdfjs/types').BlankNode[] = []
   for (let i = 0; i < 2; i++) {
     blankNodes.push(f.blankNode())
   }
