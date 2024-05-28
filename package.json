@@ -33,7 +33,7 @@
     "c8": "^9.1.0",
     "mocha": "^10.2.0",
     "rdf-dataset-ext": "^1.0.1",
-    "stricter-standard": "^0.2.0",
+    "stricter-standard": "^0.3.1",
     "tmp": "^0.2.1"
   }
 }
