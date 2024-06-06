@@ -1,7 +1,7 @@
 import { doesNotReject, strictEqual } from 'assert'
 import sinkTest from '@rdfjs/sink/test/index.js'
 import { describe, it } from 'mocha'
-import toCanonical from 'rdf-dataset-ext/toCanonical.js'
+import { datasetEqual } from 'rdf-test/assert.js'
 import decode from 'stream-chunks/decode.js'
 import Serializer from '../index.js'
 import * as example from './support/example.js'
@@ -30,7 +30,7 @@ describe('Serializer', () => {
     const code = await decode(serializer.import(stream))
     const result = await run(code)
 
-    strictEqual(toCanonical(result), toCanonical(quads))
+    datasetEqual(result, quads)
   })
 
   it('should serialize an empty list of quads to a ESM RDF/JS builder module', async () => {
@@ -73,7 +73,7 @@ describe('Serializer', () => {
     const code = await decode(serializer.import(stream))
     const result = await run(code)
 
-    strictEqual(toCanonical(result), toCanonical(quads))
+    datasetEqual(result, quads)
   })
 
   it('should serialize the given quads to a ESM RDF/JS builder module', async () => {
@@ -123,7 +123,7 @@ describe('Serializer', () => {
       const code = serializer.transform(quads)
       const result = await run(code)
 
-      strictEqual(toCanonical(result), toCanonical(quads))
+      datasetEqual(result, quads)
     })
 
     it('should serialize the given quads to a ESM RDF/JS builder module', async () => {

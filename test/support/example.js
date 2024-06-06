@@ -1,6 +1,6 @@
-import { readFile } from 'fs/promises'
+import { readFile } from 'node:fs/promises'
 import rdf from '@rdfjs/data-model'
-import toStream from 'rdf-dataset-ext/toStream.js'
+import { Readable } from 'readable-stream'
 
 async function build ({ name, quads }) {
   return {
@@ -8,7 +8,7 @@ async function build ({ name, quads }) {
     codeEsm: (await readFile(`test/support/example.${name}.mjs`)).toString(),
     codeTs: (await readFile(`test/support/example.${name}.ts`)).toString(),
     quads,
-    stream: toStream(quads)
+    stream: Readable.from(quads)
   }
 }
 

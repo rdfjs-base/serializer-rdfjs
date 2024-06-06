@@ -1,7 +1,7 @@
 import { doesNotReject, strictEqual, throws } from 'assert'
 import rdf from '@rdfjs/data-model'
 import { describe, it } from 'mocha'
-import toCanonical from 'rdf-dataset-ext/toCanonical.js'
+import { datasetEqual } from 'rdf-test/assert.js'
 import PlainSerializer from '../lib/PlainSerializer.js'
 import ECMAScriptModuleWriter from '../lib/writer/ECMAScriptModuleWriter.js'
 import * as example from './support/example.js'
@@ -77,7 +77,7 @@ describe('PlainSerializer', () => {
       const code = serializer.transform(quads)
       const result = await run(code)
 
-      strictEqual(toCanonical(result), toCanonical(quads))
+      datasetEqual(result, quads)
     })
 
     it('should generate prefixes for all named nodes', async () => {
